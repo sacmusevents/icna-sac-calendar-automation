@@ -1,0 +1,84 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:ics.py - http://git.io/lLljaA
+BEGIN:VEVENT
+DESCRIPTION:Support ICNA Dawah and Outreach work CA State Fair booth | Dawah Booths | Billboards | Revert Follow-ups....\n\n\nMore info: https://icnasac.org/up-coming-events/icna-sacramento-supporters-fundraiser-dinner-2025/
+DTEND:20250217T050000Z
+LOCATION:Folsom Community Center [ East Room ]\, 52 Natoma St\, Folsom\, CA 95630\, USA
+DTSTART:20250217T020000Z
+SUMMARY:ICNA Sacramento Supporter’s Fundraiser Dinner 2025
+UID:20250216180000-cf2632ca
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:\n\nMore info: https://icnasac.org/up-coming-events/icna-young-muslim-islamic-quiz-2025/
+DTEND:20250413T040500Z
+LOCATION:MCF Folsom\, 391 S Lexington Dr #120\, Folsom\, CA 95630\, USA
+DTSTART:20250413T040000Z
+SUMMARY:ICNA Young Muslim Islamic Quiz 2025
+UID:20250412210000-aeb36748
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:The ICNA Sacramento and its 877-Why-Islam project hosts an information booth at the California State Fair every year from past...\n\n\nMore info: https://icnasac.org/up-coming-events/icna-dawah-booth-at-ca-state-fair-2025-july-11-july-27/
+DTEND:20250728T050000Z
+LOCATION:California State Fair\, 1600 Exposition Blvd\, Sacramento\, CA 95815\, USA
+DTSTART:20250711T170000Z
+SUMMARY:ICNA Dawah Booth at CA State Fair 2025 [ July 11 – July 27 ]
+UID:20250711100000-2ea24e58
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:A short Arabic course on understanding Salah and the Quran...\n\n\nMore info: https://icnasac.org/up-coming-events/understand-salah-and-quran-the-easy-way-jun-27-29/
+DTEND:20250630T003000Z
+LOCATION:MCF Folsom\, 391 S Lexington Dr #120\, Folsom\, CA 95630\, USA
+DTSTART:20250628T013000Z
+SUMMARY:Understand Salah and Quran the easy Way. [ Jun 27- 29]
+UID:20250627183000-47a5b86d
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Dawah session with Dr Sabeel on Atheism and Youth...\n\n\nMore info: https://icnasac.org/up-coming-events/dawah-training-atheism-and-youth/
+DTEND:20251025T220000Z
+LOCATION:Masjid Annur Islamic Center Sacramento\, 6990 65th St\, Sacramento\, CA 95823\, USA
+DTSTART:20251025T170000Z
+SUMMARY:Dawah Training: Atheism and Youth
+UID:20251025100000-73c9d8a7
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Ramadan Qiyam Night @ ICNA Office...\n\n\nMore info: https://icnasac.org/up-coming-events/ramadan-qiyam-night/
+DTEND:20250316T143000Z
+LOCATION:ICNA Office: Sacramento\, 9700 Business Park Dr\, Suite 406\, Sacramento\, CA 95827\, USA
+DTSTART:20250316T063000Z
+SUMMARY:Ramadan Qiyam Night:
+UID:20250315233000-501381f8
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:WhyIslam Volunteer Appreciation Dinner2024...\n\n\nMore info: https://icnasac.org/up-coming-events/appreciation-dinner2024/
+DTEND:20240818T043000Z
+LOCATION:ICNA Office Sacramento\, 9700 Business Park Dr\, Suite 407\, Sacramento\, CA 95827\, USA
+DTSTART:20240818T023000Z
+SUMMARY:Appreciation-Dinner2024
+UID:20240817193000-15446734
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:\n\nMore info: https://icnasac.org/up-coming-events/seerah-program/
+DTEND:20251101T040000Z
+LOCATION:Islamic Society of Placer County\, 616 Church St\, Roseville\, CA 95678\, USA
+DTSTART:20251101T010000Z
+SUMMARY:Seerah Program
+UID:20251031180000-dbd538de
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Welcome the Hujjaj of year 2024....\n\n\nMore info: https://icnasac.org/up-coming-events/hujjaj-welcome-dinner-2024/
+DTEND:20240721T033000Z
+LOCATION:Rancho Cordova\, 11354 White Rock Rd\, Rancho Cordova\, CA 95742\, USA
+DTSTART:20240721T010000Z
+SUMMARY:Hujjaj Welcome Dinner 2024
+UID:20240720180000-a39a7b6e
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:The ICNA Sacramento and its 877-Why-Islam project hosts an information booth at the California State Fair every year from past...\n\n\nMore info: https://icnasac.org/up-coming-events/icna-dawah-booth-at-ca-state-fair-2024-july-12-july-28/
+DTEND:20240729T050000Z
+LOCATION:Sacramento\, 1600 Exposition Blvd\, Sacramento\, CA 95815\, USA
+DTSTART:20240712T180000Z
+SUMMARY:ICNA Dawah Booth at CA State Fair 2024 [ July 12 – July 28 ]
+UID:20240712110000-21c302cf
+END:VEVENT
+END:VCALENDAR

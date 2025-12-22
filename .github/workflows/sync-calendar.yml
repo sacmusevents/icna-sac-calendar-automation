@@ -1,0 +1,87 @@
+name: Sync ICNA Events to Calendar
+
+on:
+  # Run every 6 hours (4 times per day)
+  schedule:
+    - cron: '0 */6 * * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+  
+  # Run on push to main (for testing)
+  push:
+    branches: [ main ]
+
+jobs:
+  scrape-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Run scraper
+      run: |
+        python scrape_icna_events.py
+    
+    - name: Check if ICS file was generated
+      run: |
+        if [ ! -f "icna_events.ics" ]; then
+          echo "Error: ICS file not generated!"
+          exit 1
+        fi
+        echo "✓ ICS file generated successfully"
+        echo "File size: $(wc -c < icna_events.ics) bytes"
+        echo "Events found: $(grep -c "BEGIN:VEVENT" icna_events.ics || echo 0)"
+    
+    - name: Commit and push ICS file
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        
+        # Add the ICS file
+        git add icna_events.ics
+        
+        # Check if there are changes
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update ICNA events calendar - $(date +'%Y-%m-%d %H:%M')"
+          git push
+          echo "✓ Calendar updated and pushed"
+        fi
+    
+    - name: Upload ICS as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: icna-calendar
+        path: icna_events.ics
+        retention-days: 30
+    
+    - name: Generate summary
+      run: |
+        echo "## 📅 ICNA Events Calendar Updated" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Date**: $(date +'%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        EVENT_COUNT=$(grep -c "BEGIN:VEVENT" icna_events.ics || echo 0)
+        echo "**Events Found**: $EVENT_COUNT" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### 🔗 Subscribe to Calendar" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Use this URL in Google Calendar:" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "https://raw.githubusercontent.com/${{ github.repository }}/main/icna_events.ics" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
