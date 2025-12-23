@@ -11,16 +11,26 @@ from ics import Calendar, Event
 import pytz
 import re
 import hashlib
+import json
 from typing import List, Dict, Optional
 import sys
+import urllib.parse
+import subprocess
+from playwright.sync_api import sync_playwright
 
 class ICNAEventsScraper:
     def __init__(self):
         self.base_url = "https://icnasac.org/up-coming-events/"
+        self.rest_api_url = "https://icnasac.org/wp-json/bricks/v1/load_query_page"
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
         self.timezone = pytz.timezone('America/Los_Angeles')
+        self.wp_rest_nonce = None
+        self.post_id = "478"
+        self.query_element_id = "tnvmtb"
+        self.pagination_id = "wupvnd"
+        self.session = requests.Session()
         
     def parse_date_string(self, date_str: str) -> Optional[Dict]:
         """
@@ -119,93 +129,154 @@ class ICNAEventsScraper:
         
         return None
     
-    def scrape_page(self, page_num: int = 1) -> List[Dict]:
-        """Scrape a single page of events"""
-        url = self.base_url if page_num == 1 else f"{self.base_url}page/{page_num}/"
-        
-        print(f"Scraping page {page_num}: {url}")
-        
+    def fetch_nonce(self):
+        """Fetch the wpRestNonce from the events page and establish session cookies"""
         try:
-            response = requests.get(url, headers=self.headers, timeout=10)
+            # Use comprehensive headers to match a real browser request
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Referer': 'https://icnasac.org/'
+            }
+
+            response = self.session.get(self.base_url, headers=headers, timeout=10)
             response.raise_for_status()
-            
-            soup = BeautifulSoup(response.text, 'html.parser')
-            events = []
-            
-            # Find all event cards
-            event_cards = soup.find_all('div', class_='brxe-tnvmtb')
-            
-            print(f"Found {len(event_cards)} events on page {page_num}")
-            
-            for card in event_cards:
-                try:
-                    # Extract title
-                    title_elem = card.find('h3', class_='brxe-pgsofq')
-                    title = title_elem.get_text(strip=True) if title_elem else "Untitled Event"
-                    
-                    # Extract date/time
-                    date_elem = card.find('span', class_='brxe-bnvjah')
-                    date_text = ""
-                    if date_elem:
-                        text_span = date_elem.find('span', class_='text')
-                        date_text = text_span.get_text(strip=True) if text_span else ""
-                    
-                    # Extract location
-                    location_elem = card.find('span', class_='brxe-oacqsb')
-                    location = ""
-                    if location_elem:
-                        text_span = location_elem.find('span', class_='text')
-                        location = text_span.get_text(strip=True) if text_span else ""
-                    
-                    # Extract description (optional)
-                    desc_elem = card.find('span', class_='brxe-henoxh')
-                    description = desc_elem.get_text(strip=True) if desc_elem else ""
-                    
-                    # Extract event URL
-                    link_elem = card.find('a', class_='brxe-giwigq')
-                    event_url = link_elem['href'] if link_elem and 'href' in link_elem.attrs else ""
-                    
-                    # Parse the date
-                    date_info = self.parse_date_string(date_text) if date_text else None
-                    
-                    if date_info:
-                        events.append({
-                            'title': title,
-                            'start': date_info['start'],
-                            'end': date_info['end'],
-                            'location': location,
-                            'description': description,
-                            'url': event_url
-                        })
-                        print(f"  ✓ {title} - {date_info['start'].strftime('%Y-%m-%d')}")
-                    else:
-                        print(f"  ✗ Skipped (no valid date): {title}")
-                        
-                except Exception as e:
-                    print(f"  ✗ Error processing event: {e}")
-                    continue
-            
-            return events
-            
+
+            print(f"✓ Established session, cookies: {list(self.session.cookies.keys())}")
+
+            # Look for wpRestNonce in bricksData variable
+            match = re.search(r'"wpRestNonce":"([a-f0-9]+)"', response.text)
+            if match:
+                self.wp_rest_nonce = match.group(1)
+                print(f"✓ Fetched wpRestNonce: {self.wp_rest_nonce}")
+                return True
+            else:
+                print("⚠ Warning: Could not find wpRestNonce in page...")
+                return False
         except Exception as e:
-            print(f"Error scraping page {page_num}: {e}")
-            return []
-    
-    def scrape_all_events(self, max_pages: int = 5) -> List[Dict]:
-        """Scrape all events across multiple pages"""
+            print(f"Error fetching nonce: {e}")
+            return False
+
+    def scrape_all_pages_with_browser(self) -> List[Dict]:
+        """Scrape all pages using Playwright headless browser to handle JavaScript pagination"""
         all_events = []
-        
-        for page in range(1, max_pages + 1):
-            events = self.scrape_page(page)
-            
-            if not events:
-                print(f"No events found on page {page}, stopping.")
-                break
-                
-            all_events.extend(events)
-        
+
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page()
+
+            try:
+                # Navigate to the events page
+                print(f"Loading page with browser: {self.base_url}")
+                page.goto(self.base_url, wait_until='networkidle')
+
+                # Wait for pagination to be rendered
+                page.wait_for_selector('.brxe-pagination', timeout=10000)
+
+                # Count total pages from pagination links
+                # Look for numeric page links (2, 3, etc.) to determine total pages
+                page_links = page.query_selector_all('.brxe-pagination a.page-numbers')
+                print(f"Found {len(page_links)} pagination links")
+
+                # The last numeric link (before the next arrow) tells us the max page
+                total_pages = 1
+                for link in page_links:
+                    link_text = link.text_content().strip()
+                    if link_text.isdigit():
+                        total_pages = max(total_pages, int(link_text))
+
+                print(f"Found {total_pages} pages total")
+
+                # Scrape each page
+                for page_num in range(1, min(total_pages + 1, 6)):  # Max 5 pages
+                    print(f"Extracting events from page {page_num}")
+
+                    # Get the HTML of all event cards on this page
+                    events_html = page.locator('.brxe-tnvmtb').all()
+                    page_events = 0
+
+                    for event_elem in events_html:
+                        event_html = event_elem.inner_html()
+                        soup = BeautifulSoup(event_html, 'html.parser')
+
+                        # Extract event details
+                        title_elem = soup.find('h3', class_='brxe-pgsofq')
+                        title = title_elem.get_text(strip=True) if title_elem else "Untitled Event"
+
+                        date_elem = soup.find('span', class_='brxe-bnvjah')
+                        date_text = ""
+                        if date_elem:
+                            text_span = date_elem.find('span', class_='text')
+                            date_text = text_span.get_text(strip=True) if text_span else ""
+
+                        location_elem = soup.find('span', class_='brxe-oacqsb')
+                        location = ""
+                        if location_elem:
+                            text_span = location_elem.find('span', class_='text')
+                            location = text_span.get_text(strip=True) if text_span else ""
+
+                        desc_elem = soup.find('span', class_='brxe-henoxh')
+                        description = desc_elem.get_text(strip=True) if desc_elem else ""
+
+                        link_elem = soup.find('a', class_='brxe-giwigq')
+                        event_url = link_elem['href'] if link_elem and 'href' in link_elem.attrs else ""
+
+                        # Parse the date
+                        date_info = self.parse_date_string(date_text) if date_text else None
+
+                        if date_info:
+                            start = date_info['start']
+                            end = date_info['end']
+
+                            # Fix invalid dates (end before start)
+                            if end < start:
+                                print(f"  ⚠ Warning: End date before start for '{title}', swapping dates")
+                                start, end = end, start
+
+                            all_events.append({
+                                'title': title,
+                                'start': start,
+                                'end': end,
+                                'location': location,
+                                'description': description,
+                                'url': event_url
+                            })
+                            print(f"  ✓ {title} - {start.strftime('%Y-%m-%d')}")
+                            page_events += 1
+                        else:
+                            print(f"  ✗ Skipped (no valid date): {title}")
+
+                    print(f"Found {page_events} events on page {page_num}")
+
+                    # Click next page button if not on the last page
+                    if page_num < total_pages:
+                        next_button = page.locator('.brx-ajax-pagination .next.page-numbers')
+                        print(f"  Next button count: {next_button.count()}")
+                        if next_button.count() > 0:
+                            print(f"  Navigating to page {page_num + 1}...")
+                            try:
+                                next_button.click()
+                                print(f"  Waiting for new events to load...")
+                                # Wait for the event cards to be replaced with new content
+                                page.wait_for_timeout(2000)  # Give JavaScript time to update
+                                page.wait_for_load_state('networkidle')
+                                print(f"  Page {page_num + 1} loaded")
+                            except Exception as e:
+                                print(f"  ✗ Error clicking next button: {e}")
+                                break
+                        else:
+                            print(f"  No next button found, stopping")
+                            break
+
+            finally:
+                browser.close()
+
         print(f"\nTotal events scraped: {len(all_events)}")
         return all_events
+
     
     def generate_ics(self, events: List[Dict], filename: str = "icna_events.ics"):
         """Generate ICS calendar file from events"""
@@ -247,16 +318,16 @@ def main():
     print("ICNA Sacramento Events Scraper")
     print("=" * 60)
     print()
-    
+
     scraper = ICNAEventsScraper()
-    
-    # Scrape all events
-    events = scraper.scrape_all_events(max_pages=5)
-    
+
+    # Scrape all events using headless browser to handle JavaScript pagination
+    events = scraper.scrape_all_pages_with_browser()
+
     if not events:
         print("\n⚠ No events found!")
         sys.exit(1)
-    
+
     # Generate ICS file
     ics_file = scraper.generate_ics(events, "icna_events.ics")
     

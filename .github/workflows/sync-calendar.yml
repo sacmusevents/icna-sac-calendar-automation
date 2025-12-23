@@ -4,13 +4,16 @@ on:
   # Run every 6 hours (4 times per day)
   schedule:
     - cron: '0 */6 * * *'
-  
+
   # Allow manual trigger
   workflow_dispatch:
-  
+
   # Run on push to main (for testing)
   push:
     branches: [ main ]
+
+permissions:
+  contents: write
 
 jobs:
   scrape-and-publish:
@@ -29,7 +32,11 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-    
+
+    - name: Install Playwright browsers
+      run: |
+        playwright install chromium
+
     - name: Run scraper
       run: |
         python scrape_icna_events.py
