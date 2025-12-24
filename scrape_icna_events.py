@@ -19,7 +19,7 @@ import subprocess
 from playwright.sync_api import sync_playwright
 
 class ICNAEventsScraper:
-    def __init__(self):
+    def __init__(self, ics_file: str = "icna_events.ics"):
         self.base_url = "https://icnasac.org/up-coming-events/"
         self.rest_api_url = "https://icnasac.org/wp-json/bricks/v1/load_query_page"
         self.headers = {
@@ -31,6 +31,59 @@ class ICNAEventsScraper:
         self.query_element_id = "tnvmtb"
         self.pagination_id = "wupvnd"
         self.session = requests.Session()
+        self.ics_file = ics_file
+        self.existing_events = self._load_existing_events()
+
+    def _load_existing_events(self) -> Dict[str, str]:
+        """Load existing event UIDs and summaries from ICS file for deduplication.
+
+        Returns a dict mapping "title|DTSTART" to DTSTART value for quick lookup.
+        """
+        existing = {}
+        try:
+            with open(self.ics_file, 'r') as f:
+                content = f.read()
+
+            # Parse ICS file for events
+            in_event = False
+            event_summary = ""
+            event_dtstart = ""
+
+            for line in content.split('\n'):
+                if line.startswith('BEGIN:VEVENT'):
+                    in_event = True
+                    event_summary = ""
+                    event_dtstart = ""
+                elif line.startswith('END:VEVENT'):
+                    if event_summary and event_dtstart:
+                        # Create a unique identifier: title + start date
+                        key = f"{event_summary}|{event_dtstart}"
+                        existing[key] = True
+                    in_event = False
+                elif in_event:
+                    if line.startswith('SUMMARY:'):
+                        event_summary = line[8:]  # Skip "SUMMARY:"
+                    elif line.startswith('DTSTART:'):
+                        event_dtstart = line[8:]  # Skip "DTSTART:"
+
+            print(f"✓ Loaded {len(existing)} existing events from {self.ics_file}")
+            return existing
+        except FileNotFoundError:
+            print(f"⚠ No existing ICS file found ({self.ics_file}), will create new calendar")
+            return {}
+        except Exception as e:
+            print(f"⚠ Error reading existing ICS file: {e}")
+            return {}
+
+    def _event_exists(self, title: str, start: datetime) -> bool:
+        """Check if an event already exists in the calendar.
+
+        Uses title and start datetime as the unique identifier.
+        """
+        # Convert to ICS format: YYYYMMDDTHHMMSSZ
+        start_str = start.astimezone(pytz.utc).strftime('%Y%m%dT%H%M%SZ')
+        key = f"{title}|{start_str}"
+        return key in self.existing_events
         
     def parse_date_string(self, date_str: str) -> Optional[Dict]:
         """
@@ -200,8 +253,13 @@ class ICNAEventsScraper:
             return False
 
     def scrape_all_pages_with_browser(self) -> List[Dict]:
-        """Scrape all pages using Playwright headless browser to handle JavaScript pagination"""
+        """Scrape all pages using Playwright headless browser to handle JavaScript pagination.
+
+        Stops scraping when encountering events that already exist in the ICS file,
+        since the page is sorted from newest to oldest.
+        """
         all_events = []
+        stop_scraping = False
 
         with sync_playwright() as p:
             browser = p.chromium.launch()
@@ -272,6 +330,10 @@ class ICNAEventsScraper:
 
                 # Scrape each page
                 for page_num in range(1, min(total_pages + 1, 6)):  # Max 5 pages
+                    if stop_scraping:
+                        print(f"\n✓ Reached existing events, stopping scrape")
+                        break
+
                     print(f"Extracting events from page {page_num}")
 
                     # Get the HTML of all event cards on this page
@@ -283,8 +345,12 @@ class ICNAEventsScraper:
 
                     events_html = page.locator('.brxe-tnvmtb').all()
                     page_events = 0
+                    page_had_existing = False
 
                     for event_elem in events_html:
+                        if stop_scraping:
+                            break
+
                         event_html = event_elem.inner_html()
                         soup = BeautifulSoup(event_html, 'html.parser')
 
@@ -329,21 +395,30 @@ class ICNAEventsScraper:
                                 print(f"  ⚠ Warning: End date before start for '{title}', swapping dates")
                                 start, end = end, start
 
-                            all_events.append({
-                                'title': title,
-                                'start': start,
-                                'end': end,
-                                'location': location,
-                                'description': description,
-                                'url': event_url
-                            })
-                            print(f"  ✓ {title} - {start.strftime('%Y-%m-%d %H:%M')} to {end.strftime('%H:%M')}")
-                            page_events += 1
+                            # Check if this event already exists in the ICS file
+                            if self._event_exists(title, start):
+                                print(f"  ≡ Existing: {title}")
+                                page_had_existing = True
+                                stop_scraping = True
+                                break
+                            else:
+                                all_events.append({
+                                    'title': title,
+                                    'start': start,
+                                    'end': end,
+                                    'location': location,
+                                    'description': description,
+                                    'url': event_url
+                                })
+                                print(f"  ✓ NEW: {title} - {start.strftime('%Y-%m-%d %H:%M')} to {end.strftime('%H:%M')}")
+                                page_events += 1
                         else:
                             print(f"  ✗ Skipped (no valid date): {title}")
                             print(f"     Date text: {date_text}")
 
-                    print(f"Found {page_events} events on page {page_num}")
+                    print(f"Found {page_events} new events on page {page_num}")
+                    if page_had_existing:
+                        break
 
                     # Click next page button if not on the last page
                     if page_num < total_pages:
@@ -373,9 +448,44 @@ class ICNAEventsScraper:
 
     
     def generate_ics(self, events: List[Dict], filename: str = "icna_events.ics"):
-        """Generate ICS calendar file from events"""
-        calendar = Calendar()
+        """Generate ICS calendar file from events.
 
+        Merges new events with existing ones in the calendar file.
+        Only adds events that don't already exist.
+        """
+        # First, load existing events from the file if it exists
+        existing_event_text = ""
+        existing_count = 0
+        try:
+            with open(filename, 'r') as f:
+                content = f.read()
+
+            # Extract all existing VEVENT blocks
+            in_event = False
+            current_event_lines = []
+
+            for line in content.split('\n'):
+                if line.startswith('BEGIN:VEVENT'):
+                    in_event = True
+                    current_event_lines = [line]
+                elif line.startswith('END:VEVENT'):
+                    in_event = False
+                    current_event_lines.append(line)
+                    existing_event_text += '\n'.join(current_event_lines) + '\n'
+                    existing_count += 1
+                    current_event_lines = []
+                elif in_event:
+                    current_event_lines.append(line)
+
+            print(f"✓ Preserved {existing_count} existing events from {filename}")
+        except FileNotFoundError:
+            print(f"⚠ No existing calendar file found, creating new one")
+        except Exception as e:
+            print(f"⚠ Could not load existing events: {e}")
+
+        # Now create new events
+        calendar = Calendar()
+        new_count = 0
         for event_data in events:
             try:
                 event = Event()
@@ -387,7 +497,6 @@ class ICNAEventsScraper:
                 # Validate times
                 if not event.begin or not event.end:
                     print(f"Warning: Event '{event_data['title']}' has missing begin or end time")
-                    print(f"  Begin: {event.begin}, End: {event.end}")
                     continue
 
                 if event.end < event.begin:
@@ -403,32 +512,43 @@ class ICNAEventsScraper:
 
                 event.description = '\n'.join(description_parts)
 
-                # Create unique identifier (deterministic hash for consistent deduplication)
+                # Create unique identifier
                 title_hash = hashlib.md5(event_data['title'].encode()).hexdigest()[:8]
                 event.uid = f"{event_data['start'].strftime('%Y%m%d%H%M%S')}-{title_hash}"
 
                 calendar.events.add(event)
+                new_count += 1
             except Exception as e:
                 print(f"Error creating ICS event for '{event_data['title']}': {e}")
-                import traceback
-                traceback.print_exc()
                 continue
 
-        # Write to file with generation timestamp
+        # Write calendar with new events first, then existing events
         with open(filename, 'w') as f:
-            # Write calendar content
-            content = ''.join(calendar.serialize_iter())
-            # Insert timestamp comment after PRODID line (ensures file always changes)
-            lines = content.split('\n')
-            output_lines = []
-            for i, line in enumerate(lines):
-                output_lines.append(line)
-                if line.startswith('PRODID:'):
-                    output_lines.append(f'COMMENT:Generated at {datetime.now().isoformat()}')
-            f.write('\n'.join(output_lines))
+            # Start with calendar header
+            f.write('BEGIN:VCALENDAR\n')
+            f.write('VERSION:2.0\n')
+            f.write('PRODID:ics.py - http://git.io/lLljaA\n')
+            f.write(f'COMMENT:Generated at {datetime.now().isoformat()}\n')
 
+            # Write new events first (they're the most recent)
+            # Skip the header (lines 0-3) and footer (last line)
+            calendar_lines = calendar.serialize().split('\n')
+            for line in calendar_lines[3:-1]:  # Start from line 3 (after header), skip last line
+                if line.strip() and not line.startswith('VERSION:') and not line.startswith('PRODID:'):
+                    f.write(line + '\n')
+
+            # Write existing events
+            if existing_event_text:
+                f.write(existing_event_text)
+
+            # End calendar
+            f.write('END:VCALENDAR\n')
+
+        total_events = existing_count + new_count
         print(f"\n✓ Generated calendar file: {filename}")
-        print(f"  Events included: {len(calendar.events)}")
+        print(f"  Existing events: {existing_count}")
+        print(f"  New events added: {new_count}")
+        print(f"  Total events: {total_events}")
         print(f"  Generated: {datetime.now().isoformat()}")
 
         return filename
@@ -444,11 +564,13 @@ def main():
     # Scrape all events using headless browser to handle JavaScript pagination
     events = scraper.scrape_all_pages_with_browser()
 
-    if not events:
-        print("\n⚠ No events found!")
+    # For incremental updates, generate ICS even if no NEW events found
+    # (existing events will be preserved)
+    if not events and not scraper.existing_events:
+        print("\n⚠ No events found and no existing calendar!")
         sys.exit(1)
 
-    # Generate ICS file
+    # Generate ICS file (merges new events with existing ones)
     ics_file = scraper.generate_ics(events, "icna_events.ics")
     
     print("\n" + "=" * 60)
