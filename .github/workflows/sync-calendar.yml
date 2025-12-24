@@ -71,15 +71,29 @@ jobs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        
+
+        # Check git status before adding
+        echo "=== Git Status Before ==="
+        git status
+
         # Add the ICS file
         git add icna_events.ics
-        
+
+        # Check git status after adding
+        echo "=== Git Status After Adding ==="
+        git status
+
+        # Show what will be committed
+        echo "=== Staged Changes ==="
+        git diff --staged --stat || echo "No staged changes"
+
         # Check if there are changes
         if git diff --staged --quiet; then
           echo "No changes to commit"
         else
+          echo "Changes detected, committing..."
           git commit -m "Update ICNA events calendar - $(date +'%Y-%m-%d %H:%M')"
+          echo "Pushing to origin..."
           git push
           echo "✓ Calendar updated and pushed"
         fi

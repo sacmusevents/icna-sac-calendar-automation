@@ -212,20 +212,61 @@ class ICNAEventsScraper:
                 print(f"Loading page with browser: {self.base_url}")
                 page.goto(self.base_url, wait_until='networkidle')
 
-                # Wait for pagination to be rendered
-                page.wait_for_selector('.brxe-pagination', timeout=10000)
+                # Give page extra time to render JavaScript
+                page.wait_for_timeout(2000)
 
-                # Count total pages from pagination links
-                # Look for numeric page links (2, 3, etc.) to determine total pages
-                page_links = page.query_selector_all('.brxe-pagination a.page-numbers')
-                print(f"Found {len(page_links)} pagination links")
-
-                # The last numeric link (before the next arrow) tells us the max page
+                # Try to find pagination - check for multiple possible selectors
+                pagination_found = False
                 total_pages = 1
-                for link in page_links:
-                    link_text = link.text_content().strip()
-                    if link_text.isdigit():
-                        total_pages = max(total_pages, int(link_text))
+                pagination_selectors = [
+                    '.brxe-pagination',
+                    '.brx-ajax-pagination',
+                    '.pagination',
+                    '[class*="pagination"]'
+                ]
+
+                for selector in pagination_selectors:
+                    try:
+                        # Use a shorter timeout for each attempt
+                        page.wait_for_selector(selector, timeout=2000)
+                        print(f"✓ Found pagination with selector: {selector}")
+                        pagination_found = True
+                        break
+                    except Exception:
+                        print(f"  Pagination selector '{selector}' not found, trying next...")
+                        continue
+
+                if pagination_found:
+                    # Count total pages from pagination links
+                    # Look for numeric page links (2, 3, etc.) to determine total pages
+                    page_links = page.query_selector_all('.brxe-pagination a.page-numbers')
+                    if not page_links:
+                        # Fallback to alternative selectors
+                        page_links = page.query_selector_all('[class*="pagination"] a')
+
+                    print(f"Found {len(page_links)} pagination links")
+
+                    # The last numeric link (before the next arrow) tells us the max page
+                    for link in page_links:
+                        link_text = link.text_content().strip()
+                        if link_text.isdigit():
+                            total_pages = max(total_pages, int(link_text))
+                else:
+                    print("⚠ Warning: Could not find pagination element. Will scrape only visible events.")
+                    # Debug: Show what class names exist on the page
+                    try:
+                        page_html = page.content()
+                        # Look for common pagination class patterns
+                        if 'pagination' in page_html:
+                            print("  Debug: 'pagination' found in page HTML")
+                        if 'page-numbers' in page_html:
+                            print("  Debug: 'page-numbers' found in page HTML")
+                        # Try to find event containers
+                        event_count = page.locator('.brxe-tnvmtb').count()
+                        print(f"  Debug: Found {event_count} event containers on page")
+                    except Exception as e:
+                        print(f"  Debug: Could not inspect page: {e}")
+                    total_pages = 1
 
                 print(f"Found {total_pages} pages total")
 
@@ -234,6 +275,12 @@ class ICNAEventsScraper:
                     print(f"Extracting events from page {page_num}")
 
                     # Get the HTML of all event cards on this page
+                    # Wait a moment for events to be rendered
+                    try:
+                        page.wait_for_selector('.brxe-tnvmtb', timeout=5000)
+                    except Exception:
+                        print(f"  ⚠ Warning: Could not find event containers on page {page_num}")
+
                     events_html = page.locator('.brxe-tnvmtb').all()
                     page_events = 0
 
@@ -366,14 +413,24 @@ class ICNAEventsScraper:
                 import traceback
                 traceback.print_exc()
                 continue
-        
-        # Write to file
+
+        # Write to file with generation timestamp
         with open(filename, 'w') as f:
-            f.writelines(calendar.serialize_iter())
-        
+            # Write calendar content
+            content = ''.join(calendar.serialize_iter())
+            # Insert timestamp comment after PRODID line (ensures file always changes)
+            lines = content.split('\n')
+            output_lines = []
+            for i, line in enumerate(lines):
+                output_lines.append(line)
+                if line.startswith('PRODID:'):
+                    output_lines.append(f'COMMENT:Generated at {datetime.now().isoformat()}')
+            f.write('\n'.join(output_lines))
+
         print(f"\n✓ Generated calendar file: {filename}")
         print(f"  Events included: {len(calendar.events)}")
-        
+        print(f"  Generated: {datetime.now().isoformat()}")
+
         return filename
 
 def main():
