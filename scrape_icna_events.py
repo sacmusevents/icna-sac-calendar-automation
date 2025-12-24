@@ -43,8 +43,10 @@ class ICNAEventsScraper:
             # Clean up the string
             date_str = date_str.strip()
             date_str = re.sub(r'\s+', ' ', date_str)  # Normalize whitespace
-            
-            # Handle multi-day events
+
+            # Handle three cases:
+            # 1. Format A/B: Has a dash (date range or time range)
+            # 2. Format C: Single date/time (no dash) - default to 2-hour duration
             if '–' in date_str or '—' in date_str:
                 parts = re.split(r'[–—]', date_str)
                 start_part = parts[0].strip()
@@ -75,7 +77,7 @@ class ICNAEventsScraper:
                 # Parse end datetime
                 end_dt = None
                 end_clean = re.sub(r'\s+(PDT|PST)$', '', end_part)
-                
+
                 # End might be same day (just time) or different day
                 if re.match(r'^\d{1,2}:\d{2}\s*[AP]M', end_clean.strip()):
                     # Same day, just time
@@ -84,19 +86,21 @@ class ICNAEventsScraper:
                         hour = int(time_match.group(1))
                         minute = int(time_match.group(2))
                         am_pm = time_match.group(3)
-                        
+
                         if am_pm == 'PM' and hour != 12:
                             hour += 12
                         elif am_pm == 'AM' and hour == 12:
                             hour = 0
-                            
+
                         end_dt = start_dt.replace(hour=hour, minute=minute)
-                        
+
                         # Handle overnight events
                         if end_dt < start_dt:
                             end_dt = end_dt + timedelta(days=1)
+                    else:
+                        raise ValueError(f"Could not extract time from time-only end: {end_part}")
                 else:
-                    # Different day
+                    # Different day - must have full date
                     # Handle abbreviated month format like "Mar 16, 2025, 7:30 AM"
                     for fmt in [
                         "%b %d, %Y, %I:%M %p",
@@ -109,25 +113,60 @@ class ICNAEventsScraper:
                             break
                         except ValueError:
                             continue
-                
-                if not end_dt:
-                    # Default to 1 hour duration
-                    end_dt = start_dt + timedelta(hours=1)
-                
+
+                    # If no format matched, raise exception instead of silently defaulting
+                    if not end_dt:
+                        raise ValueError(
+                            f"End date does not match time-only pattern and could not parse as full date. "
+                            f"End part: '{end_part}', Cleaned: '{end_clean}'. "
+                            f"Expected format: 'HH:MM AM/PM' OR 'Month DD, YYYY, HH:MM AM/PM'"
+                        )
+
                 # Localize to Pacific timezone
                 start_dt = self.timezone.localize(start_dt)
                 end_dt = self.timezone.localize(end_dt)
-                
+
                 return {
                     'start': start_dt,
                     'end': end_dt
                 }
-                
+            else:
+                # Format C: Single date/time only - default to 2-hour duration
+                start_clean = re.sub(r'\s+(PDT|PST)$', '', date_str)
+
+                # Try to parse as full date with time
+                for fmt in [
+                    "%B %d, %Y, %I:%M %p",   # December 25, 2025, 2:00 PM
+                    "%B %d, %Y, %I:%M%p",    # December 25, 2025, 2:00PM
+                ]:
+                    try:
+                        start_dt = datetime.strptime(start_clean, fmt)
+                        break
+                    except ValueError:
+                        continue
+
+                if not start_dt:
+                    raise ValueError(
+                        f"Single date/time format could not parse. "
+                        f"Input: '{date_str}'. "
+                        f"Expected format: 'Month DD, YYYY, HH:MM AM/PM'"
+                    )
+
+                # Default to 2-hour duration for events with only start time
+                end_dt = start_dt + timedelta(hours=2)
+
+                # Localize to Pacific timezone
+                start_dt = self.timezone.localize(start_dt)
+                end_dt = self.timezone.localize(end_dt)
+
+                return {
+                    'start': start_dt,
+                    'end': end_dt
+                }
+
         except Exception as e:
             print(f"Error parsing date '{date_str}': {e}")
             return None
-        
-        return None
     
     def fetch_nonce(self):
         """Fetch the wpRestNonce from the events page and establish session cookies"""
@@ -231,6 +270,13 @@ class ICNAEventsScraper:
                             start = date_info['start']
                             end = date_info['end']
 
+                            # Validate that both start and end are properly set
+                            if not start or not end:
+                                print(f"  ✗ Skipped (incomplete date info): {title}")
+                                print(f"     Date text: {date_text}")
+                                print(f"     Start: {start}, End: {end}")
+                                continue
+
                             # Fix invalid dates (end before start)
                             if end < start:
                                 print(f"  ⚠ Warning: End date before start for '{title}', swapping dates")
@@ -244,10 +290,11 @@ class ICNAEventsScraper:
                                 'description': description,
                                 'url': event_url
                             })
-                            print(f"  ✓ {title} - {start.strftime('%Y-%m-%d')}")
+                            print(f"  ✓ {title} - {start.strftime('%Y-%m-%d %H:%M')} to {end.strftime('%H:%M')}")
                             page_events += 1
                         else:
                             print(f"  ✗ Skipped (no valid date): {title}")
+                            print(f"     Date text: {date_text}")
 
                     print(f"Found {page_events} events on page {page_num}")
 
@@ -281,28 +328,44 @@ class ICNAEventsScraper:
     def generate_ics(self, events: List[Dict], filename: str = "icna_events.ics"):
         """Generate ICS calendar file from events"""
         calendar = Calendar()
-        
+
         for event_data in events:
-            event = Event()
-            event.name = event_data['title']
-            event.begin = event_data['start']
-            event.end = event_data['end']
-            event.location = event_data['location']
-            
-            # Combine description and URL
-            description_parts = []
-            if event_data['description']:
-                description_parts.append(event_data['description'])
-            if event_data['url']:
-                description_parts.append(f"\n\nMore info: {event_data['url']}")
-            
-            event.description = '\n'.join(description_parts)
-            
-            # Create unique identifier (deterministic hash for consistent deduplication)
-            title_hash = hashlib.md5(event_data['title'].encode()).hexdigest()[:8]
-            event.uid = f"{event_data['start'].strftime('%Y%m%d%H%M%S')}-{title_hash}"
-            
-            calendar.events.add(event)
+            try:
+                event = Event()
+                event.name = event_data['title']
+                event.begin = event_data['start']
+                event.end = event_data['end']
+                event.location = event_data['location']
+
+                # Validate times
+                if not event.begin or not event.end:
+                    print(f"Warning: Event '{event_data['title']}' has missing begin or end time")
+                    print(f"  Begin: {event.begin}, End: {event.end}")
+                    continue
+
+                if event.end < event.begin:
+                    print(f"Warning: Event '{event_data['title']}' has end before begin, skipping")
+                    continue
+
+                # Combine description and URL
+                description_parts = []
+                if event_data['description']:
+                    description_parts.append(event_data['description'])
+                if event_data['url']:
+                    description_parts.append(f"\n\nMore info: {event_data['url']}")
+
+                event.description = '\n'.join(description_parts)
+
+                # Create unique identifier (deterministic hash for consistent deduplication)
+                title_hash = hashlib.md5(event_data['title'].encode()).hexdigest()[:8]
+                event.uid = f"{event_data['start'].strftime('%Y%m%d%H%M%S')}-{title_hash}"
+
+                calendar.events.add(event)
+            except Exception as e:
+                print(f"Error creating ICS event for '{event_data['title']}': {e}")
+                import traceback
+                traceback.print_exc()
+                continue
         
         # Write to file
         with open(filename, 'w') as f:

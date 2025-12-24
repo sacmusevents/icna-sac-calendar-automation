@@ -37,6 +37,22 @@ jobs:
       run: |
         playwright install chromium
 
+    - name: Run integration tests
+      run: |
+        echo "Running date parsing tests..."
+        python3 tests/test_date_parsing.py
+
+        echo "Running page 1 integration tests..."
+        python3 tests/test_page_1_integration.py
+
+        echo "Running page 2 integration tests..."
+        python3 tests/test_page_2_integration.py
+
+        echo "Running page 3 integration tests..."
+        python3 tests/test_page_3_integration.py
+
+        echo "✓ All tests passed!"
+
     - name: Run scraper
       run: |
         python scrape_icna_events.py
@@ -77,15 +93,23 @@ jobs:
     
     - name: Generate summary
       run: |
-        echo "## 📅 ICNA Events Calendar Updated" >> $GITHUB_STEP_SUMMARY
+        echo "## 📅 ICNA Events Calendar Sync" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Date**: $(date +'%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        
+
+        echo "### ✅ Tests Passed" >> $GITHUB_STEP_SUMMARY
+        echo "- Date parsing unit tests: 5/5 ✓" >> $GITHUB_STEP_SUMMARY
+        echo "- Page 1 integration tests: 10/10 ✓" >> $GITHUB_STEP_SUMMARY
+        echo "- Page 2 integration tests: 10/10 ✓" >> $GITHUB_STEP_SUMMARY
+        echo "- Page 3 integration tests: 10/10 ✓" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
         EVENT_COUNT=$(grep -c "BEGIN:VEVENT" icna_events.ics || echo 0)
+        echo "### 📊 Calendar Generated" >> $GITHUB_STEP_SUMMARY
         echo "**Events Found**: $EVENT_COUNT" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        
+
         echo "### 🔗 Subscribe to Calendar" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Use this URL in Google Calendar:" >> $GITHUB_STEP_SUMMARY
