@@ -2,12 +2,68 @@ BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:ics.py - http://git.io/lLljaA
 BEGIN:VEVENT
-DESCRIPTION:Support ICNA Dawah and Outreach work CA State Fair booth | Dawah Booths | Billboards | Revert Follow-ups....\n\n\nMore info: https://icnasac.org/up-coming-events/icna-sacramento-supporters-fundraiser-dinner-2025/
-DTEND:20250217T050000Z
-LOCATION:Folsom Community Center [ East Room ]\, 52 Natoma St\, Folsom\, CA 95630\, USA
-DTSTART:20250217T020000Z
-SUMMARY:ICNA Sacramento Supporter’s Fundraiser Dinner 2025
-UID:20250216180000-cf2632ca
+DESCRIPTION:\n\nMore info: https://icnasac.org/up-coming-events/family-hike-sly-park-venue-change-from-bassi-falls/
+DTEND:20220326T210000Z
+LOCATION:Sly Park Recreation Area\, 4771 Sly Park Rd\, Pollock Pines\, CA 95726\, USA
+DTSTART:20220326T160000Z
+SUMMARY:Family Hike Sly Park ( Venue change from Bassi Falls )
+UID:20220326090000-b72fee07
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Dawah session with Dr Sabeel on Atheism and Youth...\n\n\nMore info: https://icnasac.org/up-coming-events/dawah-training-atheism-and-youth/
+DTEND:20251025T220000Z
+LOCATION:Masjid Annur Islamic Center Sacramento\, 6990 65th St\, Sacramento\, CA 95823\, USA
+DTSTART:20251025T170000Z
+SUMMARY:Dawah Training: Atheism and Youth
+UID:20251025100000-73c9d8a7
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:\n\nMore info: https://icnasac.org/up-coming-events/icna-young-muslim-islamic-quiz-2022/
+DTEND:20220424T210000Z
+LOCATION:ICNA quiz 2022 will be Online Event
+DTSTART:20220423T160000Z
+SUMMARY:ICNA Young Muslim Islamic Quiz 2022
+UID:20220423090000-8b93ee21
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Support ICNA Sacramento Outreach\, education and Relief activities...\n\n\nMore info: https://icnasac.org/up-coming-events/icna-sacramento-supporters-fundraiser-2022/
+DTEND:20220422T230000Z
+LOCATION:ICNA Sacramento Zoom Meeting
+DTSTART:20220422T210000Z
+SUMMARY:ICNA Sacramento Supporter’s Fundraiser 2022
+UID:20220422140000-e4e0aed9
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Dawah booth every weekend at Denios Market....\n\n\nMore info: https://icnasac.org/up-coming-events/every-sunday-dawah-booth-denios-market-roseville-2022/
+DTEND:20220529T220000Z
+LOCATION:Roseville\, 1551 Vineyard Rd\, Roseville\, CA 95678\, USA
+DTSTART:20220529T173000Z
+SUMMARY:Every Sunday: Dawah Booth @ Denios Market Roseville 2022
+UID:20220529103000-b2d3a462
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:\n\nMore info: https://icnasac.org/up-coming-events/icna-office-opening/
+DTEND:20221008T223000Z
+LOCATION:Sacramento\, 9700 Business Park Dr\, #407 \, Sacramento\, CA 95827\, USA
+DTSTART:20221008T200000Z
+SUMMARY:ICNA Office Opening
+UID:20221008130000-f98409bf
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:\n\nMore info: https://icnasac.org/up-coming-events/40-hadeeth-of-nawawi-by-sh-khalilurahman-chishti/
+DTEND:20220502T003000Z
+LOCATION:MCF Folsom\, 391 S Lexington Dr\, Folsom 95630
+DTSTART:20220407T023000Z
+SUMMARY:40 Hadeeth of Nawawi by Sh. Khalilurahman Chishti
+UID:20220406193000-17d2b600
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:ICNA Sacramento and Bay Area is having a Regional Tarbiyah Retreat. The Program will have Insightful Lectures\, Group discussions\, ICNA...\n\n\nMore info: https://icnasac.org/up-coming-events/icna-tarbiyah-retreat-2023/
+DTEND:20230910T010000Z
+LOCATION:Livermore\, 7000 Del Valle Rd\, Livermore\, CA 94550\, USA
+DTSTART:20230909T150000Z
+SUMMARY:ICNA Tarbiyah Retreat 2023
+UID:20230909080000-b578eeac
 END:VEVENT
 BEGIN:VEVENT
 DESCRIPTION:\n\nMore info: https://icnasac.org/up-coming-events/icna-young-muslim-islamic-quiz-2025/
@@ -18,12 +74,67 @@ SUMMARY:ICNA Young Muslim Islamic Quiz 2025
 UID:20250412210000-aeb36748
 END:VEVENT
 BEGIN:VEVENT
-DESCRIPTION:The ICNA Sacramento and its 877-Why-Islam project hosts an information booth at the California State Fair every year from past...\n\n\nMore info: https://icnasac.org/up-coming-events/icna-dawah-booth-at-ca-state-fair-2025-july-11-july-27/
-DTEND:20250728T050000Z
-LOCATION:California State Fair\, 1600 Exposition Blvd\, Sacramento\, CA 95815\, USA
-DTSTART:20250711T170000Z
-SUMMARY:ICNA Dawah Booth at CA State Fair 2025 [ July 11 – July 27 ]
-UID:20250711100000-2ea24e58
+DESCRIPTION:\n\nMore info: https://icnasac.org/up-coming-events/qiyam-program/
+DTEND:20230226T070000Z
+LOCATION:ICNA Office \, 9700 Business Park Dr\, Sacramento\, CA 95827\, USA
+DTSTART:20230226T030000Z
+SUMMARY:Qiyam Program
+UID:20230225190000-6ac935e8
+END:VEVENT
+BEGIN:VEVENT
+DTEND:20220328T020000Z
+LOCATION:https://icnarelief.org/california-banquet/
+DTSTART:20220327T233000Z
+SUMMARY:ICNA  Relief Californa Virtual Banquet
+UID:20220327163000-f05f7547
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Searching the Night of Power...\n\n\nMore info: https://icnasac.org/up-coming-events/qiyamnight/
+DTEND:20240406T130000Z
+LOCATION:ICNA Sacramento Office \, 9700 Business Park Dr\, Sacramento\, CA 95827\, USA
+DTSTART:20240406T065500Z
+SUMMARY:QiyamNight
+UID:20240405235500-75dfdf6d
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:The ICNA Sacramento and its 877-Why-Islam project hosts an information booth at the California State Fair every year from past...
+DTEND:20230731T050000Z
+LOCATION:Sacramento\, 1600 Exposition Blvd\, Sacramento\, CA 95815\, USA
+DTSTART:20230714T180000Z
+SUMMARY:ICNA Dawah Booth at CA State Fair 2023 [ July 14 – July 30 ]
+UID:20230714110000-5a2c9a89
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Dawah booth every weekend at Denios Market....\n\n\nMore info: https://icnasac.org/up-coming-events/every-saturday-dawah-booth-denios-market-roseville-2022/
+DTEND:20220528T220000Z
+LOCATION:Roseville\, 1551 Vineyard Rd\, Roseville\, CA 95678\, USA
+DTSTART:20220528T173000Z
+SUMMARY:Every Saturday: Dawah Booth @ Denios Market Roseville 2022
+UID:20220528103000-f8a64de9
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Eid Milan Event [ Eid-ul-Fitr 2024]...\n\n\nMore info: https://icnasac.org/up-coming-events/eid-milan-2024/
+DTEND:20240425T050000Z
+LOCATION:ICNA Sacramento Office\, 9700 Business Park Dr\, Sacramento\, CA 95827\, USA
+DTSTART:20240425T023000Z
+SUMMARY:Eid Milan 2024
+UID:20240424193000-690e4d55
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:\n\nMore info: https://icnasac.org/up-coming-events/weekend-atiqaf-april-1st-and-2nd-friday-and-saturday-night-at-mcf-folsom/
+DTEND:20220403T130000Z
+LOCATION:MCF Folsom\, 391 S Lexington Dr #120\, Folsom\, CA 95630\, USA
+DTSTART:20220402T040000Z
+SUMMARY:Weekend Atiqaf [ April 1st and 2nd] Friday and Saturday night at MCF Folsom
+UID:20220401210000-2aa471d8
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Support ICNA Dawah and Outreach work CA State Fair booth | Dawah Booths | Billboards | Revert Follow-ups....\n\n\nMore info: https://icnasac.org/up-coming-events/icna-sacramento-supporters-fundraiser-dinner-2025/
+DTEND:20250217T050000Z
+LOCATION:Folsom Community Center [ East Room ]\, 52 Natoma St\, Folsom\, CA 95630\, USA
+DTSTART:20250217T020000Z
+SUMMARY:ICNA Sacramento Supporter’s Fundraiser Dinner 2025
+UID:20250216180000-cf2632ca
 END:VEVENT
 BEGIN:VEVENT
 DESCRIPTION:A short Arabic course on understanding Salah and the Quran...\n\n\nMore info: https://icnasac.org/up-coming-events/understand-salah-and-quran-the-easy-way-jun-27-29/
@@ -34,12 +145,28 @@ SUMMARY:Understand Salah and Quran the easy Way. [ Jun 27- 29]
 UID:20250627183000-47a5b86d
 END:VEVENT
 BEGIN:VEVENT
-DESCRIPTION:Dawah session with Dr Sabeel on Atheism and Youth...\n\n\nMore info: https://icnasac.org/up-coming-events/dawah-training-atheism-and-youth/
-DTEND:20251025T220000Z
-LOCATION:Masjid Annur Islamic Center Sacramento\, 6990 65th St\, Sacramento\, CA 95823\, USA
-DTSTART:20251025T170000Z
-SUMMARY:Dawah Training: Atheism and Youth
-UID:20251025100000-73c9d8a7
+DESCRIPTION:Support ICNA Dawah | WhyIslam Sacramento | ICNA Relief...\n\n\nMore info: https://icnasac.org/up-coming-events/icna-sacramento-annual-supporters-dinner/
+DTEND:20230305T050000Z
+LOCATION:Sacramento\, 4545 College Oak Dr\, Sacramento\, CA 95841\, USA
+DTSTART:20230305T013000Z
+SUMMARY:ICNA Sacramento Annual Supporter’s Dinner
+UID:20230304173000-db7fafc5
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:\n\nMore info: https://icnasac.org/up-coming-events/icna-sacramento-eid-picnic-2022/
+DTEND:20220523T020000Z
+LOCATION:Kaseberg Park \, 1511 Rand Way \,Roseville\, CA 95678\, USA
+DTSTART:20220522T210000Z
+SUMMARY:ICNA Sacramento Eid Picnic 2022
+UID:20220522140000-2e5d452b
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:\n\nMore info: https://icnasac.org/up-coming-events/icna-sacramento-eid-picnic-2023/
+DTEND:20230508T020000Z
+LOCATION:Kaseberg Park\, 1151 Rand Way\, Roseville\, CA 95678\, USA
+DTSTART:20230507T210000Z
+SUMMARY:ICNA Sacramento Eid Picnic 2023
+UID:20230507140000-d6cc02d2
 END:VEVENT
 BEGIN:VEVENT
 DESCRIPTION:Ramadan Qiyam Night @ ICNA Office...\n\n\nMore info: https://icnasac.org/up-coming-events/ramadan-qiyam-night/
@@ -58,6 +185,46 @@ SUMMARY:Appreciation-Dinner2024
 UID:20240817193000-15446734
 END:VEVENT
 BEGIN:VEVENT
+DESCRIPTION:Support ICNA Dawah and Outreach work CA State Fair booth | Dawah Booths | Billboards | Revert Follow-ups....\n\n\nMore info: https://icnasac.org/up-coming-events/icna-sacramento-annual-fundraiser-dinner-2024/
+DTEND:20240303T050000Z
+LOCATION:Folsom Community Center [ West Room ]\, 52 Natoma St\, Folsom\, CA 95630\, USA
+DTSTART:20240303T020000Z
+SUMMARY:ICNA Sacramento Annual Fundraiser Dinner 2024
+UID:20240302180000-035d6519
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:The ICNA Sacramento and its 877-Why-Islam project hosts an information booth at the California State Fair every year from past...\n\n\nMore info: https://icnasac.org/up-coming-events/icna-dawah-booth-at-ca-state-fair-2024-july-12-july-28/
+DTEND:20240729T050000Z
+LOCATION:Sacramento\, 1600 Exposition Blvd\, Sacramento\, CA 95815\, USA
+DTSTART:20240712T180000Z
+SUMMARY:ICNA Dawah Booth at CA State Fair 2024 [ July 12 – July 28 ]
+UID:20240712110000-21c302cf
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:ICNA Dawah | WhyIslam Dawah booths...
+DTEND:20230709T013000Z
+LOCATION:Galleria Mall \, 1151 Galleria Blvd\, Roseville\, CA 95678\, USA
+DTSTART:20230708T200000Z
+SUMMARY:Every Saturday : Dawah Booth @ Galleria Mall Roseville
+UID:20230708130000-507b74b4
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:The ICNA Sacramento and its 877-Why-Islam project hosts an information booth at the California State Fair every year from past...\n\n\nMore info: https://icnasac.org/up-coming-events/icna-dawah-booth-at-ca-state-fair-2025-july-11-july-27/
+DTEND:20250728T050000Z
+LOCATION:California State Fair\, 1600 Exposition Blvd\, Sacramento\, CA 95815\, USA
+DTSTART:20250711T170000Z
+SUMMARY:ICNA Dawah Booth at CA State Fair 2025 [ July 11 – July 27 ]
+UID:20250711100000-2ea24e58
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:ICNA Dawah : WhyIslam Dawah booth at Arden Fair Mall every Saturday and Sunday....
+DTEND:20230710T010000Z
+LOCATION:Arden Fair Mall\, 1689 Arden Way\, Sacramento\, CA 95815\, USA
+DTSTART:20230709T190000Z
+SUMMARY:Every Weekend : Dawah Booth @ Arden Fair Mall
+UID:20230709120000-d23fd7cc
+END:VEVENT
+BEGIN:VEVENT
 DESCRIPTION:\n\nMore info: https://icnasac.org/up-coming-events/seerah-program/
 DTEND:20251101T040000Z
 LOCATION:Islamic Society of Placer County\, 616 Church St\, Roseville\, CA 95678\, USA
@@ -72,13 +239,5 @@ LOCATION:Rancho Cordova\, 11354 White Rock Rd\, Rancho Cordova\, CA 95742\, USA
 DTSTART:20240721T010000Z
 SUMMARY:Hujjaj Welcome Dinner 2024
 UID:20240720180000-a39a7b6e
-END:VEVENT
-BEGIN:VEVENT
-DESCRIPTION:The ICNA Sacramento and its 877-Why-Islam project hosts an information booth at the California State Fair every year from past...\n\n\nMore info: https://icnasac.org/up-coming-events/icna-dawah-booth-at-ca-state-fair-2024-july-12-july-28/
-DTEND:20240729T050000Z
-LOCATION:Sacramento\, 1600 Exposition Blvd\, Sacramento\, CA 95815\, USA
-DTSTART:20240712T180000Z
-SUMMARY:ICNA Dawah Booth at CA State Fair 2024 [ July 12 – July 28 ]
-UID:20240712110000-21c302cf
 END:VEVENT
 END:VCALENDAR
